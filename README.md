@@ -35,3 +35,11 @@ The room and character are rendered live in Three.js. Camera controls change fra
 ## Existing local data
 
 The earlier SQLite prototype's `data/aether.db` is not automatically migrated to Supabase. Keep a backup if it contains conversations you need. The old local database is not used by the new multi-user routes.
+
+## First-time database check
+
+The setup screen can test a standard `https://<project>.supabase.co` URL and a Supabase publishable or legacy anon key without storing either. Secret and service-role keys must never be entered in the browser. This public-key test is read-only: it checks the authentication endpoint and whether the required REST tables are visible, but it cannot prove that row-level security policies are correct. Custom-domain Supabase URLs are not supported by the diagnostic form.
+
+A publishable key cannot safely create tables or change RLS. An administrator must apply the versioned migration in the Supabase SQL editor and set the server-only environment variables described above. Vercel's serverless filesystem is not durable, so the browser cannot save deployment-wide database configuration; use the Vercel dashboard and redeploy instead. Changing or disconnecting a database is also a deployment administrator action, and does not delete its data. The wizard will continue to appear until server configuration, required tables, and authentication are reachable.
+
+After sign-in, the app performs a real, authenticated save/read/delete check using a temporary conversation and message it creates for that purpose. Only those temporary records are removed. If the test or cleanup fails, chat remains blocked and the user can retry. This verifies access for the signed-in account, not isolation against other accounts; verify cross-account RLS policies separately before production. If the database becomes unavailable, the app will not silently fall back to in-memory persistence.

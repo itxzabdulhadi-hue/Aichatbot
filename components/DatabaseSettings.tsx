@@ -1,0 +1,8 @@
+'use client';
+import {useState} from 'react';
+import type {DatabaseHealth} from './DatabaseSetup';
+export default function DatabaseSettings({health,onRetry}:{health:DatabaseHealth|null,onRetry:()=>void}){
+ const [status,setStatus]=useState('');const [busy,setBusy]=useState(false);
+ const test=async()=>{setBusy(true);setStatus('Checking database and authentication…');try{const r=await fetch('/api/health',{cache:'no-store'}),data=await r.json();if(!r.ok)throw new Error('Database, authentication, or required tables are unavailable.');const check=await fetch('/api/database/self-test',{method:'POST'}),result=await check.json();if(!check.ok)throw new Error(result.error);setStatus('Connected. A test conversation and message were saved, read, and removed. Cross-account RLS isolation has not been independently verified.');}catch(e){setStatus(e instanceof Error?e.message:'Check failed.');}finally{setBusy(false);}};
+ return <section><p className="panel-caption">DATABASE SETTINGS</p><div className="setting-row"><div><strong>Supabase · {health?.database==='connected'?'Connected':'Unavailable'}</strong><small>{health?.projectUrl||'Project URL unavailable'}</small></div></div><p className="panel-description">Initialization: {health?.initialization||'unknown'}. Configuration is managed by the deployment administrator. To update or disconnect, change or remove the server environment variables in your hosting dashboard and redeploy; this does not delete database data.</p><div className="settings-actions"><button disabled={busy} onClick={test}>Test database connection</button><button onClick={onRetry}>Refresh application health</button></div>{status&&<p className="account-message" role="status">{status}</p>}</section>;
+}
