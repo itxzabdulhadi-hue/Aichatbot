@@ -2,6 +2,8 @@ import {session,admin,guard,safeError} from '@/lib/server/supabase';
 import {decrypt} from '@/lib/server/crypto';
 import {providerInfo,headers} from '@/lib/server/providers';
 export const runtime='nodejs';
+// Allow time for streamed provider responses on hosts that support this duration.
+export const maxDuration=120;
 export async function POST(req:Request){
  const g=guard(req);if(g)return g;
  try{

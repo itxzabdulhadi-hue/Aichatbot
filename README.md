@@ -11,6 +11,15 @@ A 3D companion interface with a Supabase-backed, per-account conversation servic
 5. Run `npm run dev` and open `http://localhost:3000`. The setup screen checks the backend and database. Sign up/sign in, open Settings → AI Configuration, save a provider key, test it, retrieve or enter a model ID, and set it as your default. A saved key is **not** considered verified until a test succeeds.
 6. `npm run build` builds the application; `npm start` runs the production server. Deploy on a Node-compatible platform with the above server environment variables and HTTPS. Production mutation requests require HTTPS; configure your trusted reverse proxy to set `X-Forwarded-Proto` and `X-Forwarded-Host` correctly. Add your production origin to Supabase Auth. Never expose this app over plain HTTP in production.
 
+## Deploy on Vercel
+
+1. Import the GitHub repository and select the desired branch in Vercel. The included `vercel.json` configures the Next.js framework, `npm ci`, and the build command. Choose a Node.js version supported by the project (20 or newer).
+2. Apply the Supabase SQL migration from step 2 above. In Vercel project settings, add `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, and `CREDENTIAL_ENCRYPTION_KEY` to the deployment environments you intend to use. Add `OTHER_AI_BASE_URL` only if needed. Set sensitive values in the Vercel dashboard, not in the repository; keep the encryption key stable across deployments.
+3. Deploy or redeploy after adding variables. Set the Supabase Auth site URL and add the deployed `https://YOUR_DOMAIN/auth/callback` URL to its allowed redirect URLs. Preview deployments need their own allowed callback URL when testing password recovery.
+4. Open `/api/health` on the deployment and confirm the database is connected, then sign in and configure an AI provider in Settings. Chat requests request a maximum duration of 120 seconds; actual limits depend on your Vercel plan and project settings.
+
+A deployment without Supabase configuration will show the setup screen rather than a working chat. The previous local SQLite database is not usable as persistent storage on Vercel.
+
 `GET /api/health` reports whether the backend configuration and database schema are reachable, without exposing secrets. The optional `OTHER_AI_BASE_URL` is a server-administrator configured HTTPS OpenAI-compatible endpoint. Ordinary users cannot supply URLs; only set this variable to a trusted provider. OpenAI, OpenRouter, Gemini (OpenAI compatibility API), Anthropic and Groq use their provider APIs. Model listing and parameter support can vary by provider and account. API keys are submitted over the application's HTTPS connection and encrypted with AES-256-GCM server-side; the service-role-only secret table is not accessible through Supabase's authenticated or anonymous APIs. No stored key is returned by the application. Review deployment security, RLS, TLS, rate limits, email configuration and your providers' terms before production. This implementation has not undergone a security audit.
 
 ## Conversations and voice
