@@ -1,2 +1,2 @@
-import {session,safeError} from '@/lib/server/supabase';
-export async function GET(){try{const s=await session();if(!s)return safeError('Sign in required.',401);const {data,error}=await s.db.from('usage_events').select('provider,model,status,input_tokens,output_tokens,created_at').eq('user_id',s.user.id).order('created_at',{ascending:false}).limit(1000);if(error)throw error;return Response.json(data);}catch{return safeError('Could not load usage.');}}
+import {pool,safeError} from '@/lib/server/db';import {session} from '@/lib/server/auth';
+export async function GET(){try{const u=await session();if(!u)return safeError('Sign in required.',401);const r=await pool().query('SELECT provider,model,status,input_tokens,output_tokens,created_at FROM usage_events WHERE user_id=$1 ORDER BY created_at DESC LIMIT 1000',[u.id]);return Response.json(r.rows);}catch{return safeError('Could not load usage.');}}

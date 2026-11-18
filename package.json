@@ -1,1 +1,32 @@
-{"name":"aether-agent","version":"1.0.0","private":true,"scripts":{"dev":"next dev -H 0.0.0.0","build":"next build","start":"next start -H 0.0.0.0","lint":"next lint"},"dependencies":{"@supabase/ssr":"^0.12.7","@supabase/supabase-js":"^2.119.1","@types/node":"^22.0.0","@types/react":"^19.0.0","@types/react-dom":"^19.0.0","@types/three":"^0.170.0","lucide-react":"^0.468.0","next":"^15.1.0","react":"^19.0.0","react-dom":"^19.0.0","three":"^0.170.0","typescript":"^5.7.0"}}
+{
+  "name": "aether-agent",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -H 0.0.0.0",
+    "build": "next build",
+    "start": "next start -H 0.0.0.0",
+    "lint": "next lint",
+    "db:migrate": "node scripts/migrate.mjs",
+    "db:import-legacy": "node scripts/import-legacy.mjs"
+  },
+  "dependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@types/three": "^0.170.0",
+    "bcryptjs": "^3.0.3",
+    "lucide-react": "^0.468.0",
+    "next": "^15.1.0",
+    "nodemailer": "^10.6.0",
+    "pg": "^8.23.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "three": "^0.170.0",
+    "typescript": "^5.7.0"
+  },
+  "devDependencies": {
+    "@types/nodemailer": "^8.0.2",
+    "@types/pg": "^8.23.1"
+  }
+}

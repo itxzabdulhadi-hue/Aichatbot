@@ -1,14 +1,3 @@
-import {configured,admin} from '@/lib/server/supabase';
+import {configured,pool} from '@/lib/server/db';
 export const dynamic='force-dynamic';
-export async function GET(){
- if(!configured())return Response.json({configured:false,database:'not configured',authentication:'unknown',initialization:'unknown'}, {status:503});
- try{
-  const db=admin();const tables=['profiles','conversations','messages','provider_configs','provider_secrets','preferences','memories','usage_events'];
-  const checks=await Promise.all(tables.map(t=>db.from(t).select('*',{head:true,count:'exact'}).limit(1)));
-  if(checks.some(x=>x.error))return Response.json({configured:true,database:'unavailable',authentication:'unknown',initialization:'incomplete'}, {status:503});
-  const url=new URL(process.env.SUPABASE_URL!);const response=await fetch(new URL('/auth/v1/settings',url),{headers:{apikey:process.env.SUPABASE_ANON_KEY!},cache:'no-store',redirect:'error',signal:AbortSignal.timeout(10000)});
-  if(!response.ok)return Response.json({configured:true,database:'connected',authentication:'unavailable',initialization:'tables reachable'}, {status:503});
-  const settings=await response.json();if(settings?.external?.email===false)return Response.json({configured:true,database:'connected',authentication:'email disabled',initialization:'tables reachable'}, {status:503});
-  return Response.json({configured:true,provider:'Supabase',projectUrl:url.origin,database:'connected',authentication:'reachable',initialization:'tables reachable',rls:'not independently verified'});
- }catch{return Response.json({configured:true,database:'unavailable',authentication:'unknown',initialization:'unknown'},{status:503});}
-}
+export async function GET(){if(!configured())return Response.json({configured:false,database:'not configured',authentication:'unknown',initialization:'unknown'},{status:503});try{const r=await pool().query("SELECT to_regclass('public.app_users') AS users,to_regclass('public.auth_sessions') AS sessions,to_regclass('public.profiles') AS profiles,to_regclass('public.conversations') AS conversations,to_regclass('public.messages') AS messages,to_regclass('public.provider_configs') AS provider_configs,to_regclass('public.provider_secrets') AS provider_secrets,to_regclass('public.preferences') AS preferences,to_regclass('public.memories') AS memories,to_regclass('public.usage_events') AS usage_events,to_regclass('public.schema_migrations') AS migrations");if(Object.values(r.rows[0]).some(x=>!x))return Response.json({configured:true,database:'connected',authentication:'unavailable',initialization:'migration required'},{status:503});return Response.json({configured:true,provider:'Neon PostgreSQL',database:'connected',authentication:'ready',initialization:'tables reachable'});}catch{return Response.json({configured:true,database:'unavailable',authentication:'unknown',initialization:'unknown'},{status:503});}}

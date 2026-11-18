@@ -1,0 +1,5 @@
+import pg from 'pg';
+import {readFile,readdir} from 'node:fs/promises';
+if(!process.env.DATABASE_URL){console.error('DATABASE_URL is required');process.exit(1)}
+const pool=new pg.Pool({connectionString:process.env.DATABASE_URL});const db=await pool.connect();
+try{await db.query('BEGIN');await db.query("SELECT pg_advisory_xact_lock(hashtext('aether-schema-migrations'))");await db.query('CREATE TABLE IF NOT EXISTS schema_migrations (version text PRIMARY KEY,applied_at timestamptz NOT NULL DEFAULT now())');for(const name of (await readdir('migrations')).filter(x=>/^\d+.*\.sql$/.test(x)).sort()){const found=await db.query('SELECT 1 FROM schema_migrations WHERE version=$1',[name]);if(found.rowCount)continue;await db.query(await readFile(`migrations/${name}`,'utf8'));await db.query('INSERT INTO schema_migrations(version) VALUES($1)',[name]);console.log(`Applied ${name}`);}await db.query('COMMIT');}catch(e){await db.query('ROLLBACK');console.error('Migration failed:',e.message);process.exitCode=1;}finally{db.release();await pool.end();}
